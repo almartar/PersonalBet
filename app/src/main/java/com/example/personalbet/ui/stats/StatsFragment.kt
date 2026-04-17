@@ -29,7 +29,7 @@ class StatsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val allBets = mutableListOf<Bet>()
-    private val scopeOptions = listOf("General", "Tipster", "Casa de apuestas")
+    private val scopeOptions = listOf("General", "Tipster", "Cuenta")
     private val betTypeOptions = listOf("Todos", "Live", "PreMatch")
     private var subjectOptions: List<String> = emptyList()
     private var marketOptions: List<String> = listOf("Todos")
@@ -148,7 +148,7 @@ class StatsFragment : Fragment() {
                     values.add(value)
                 }
             }
-        } else if (selectedScope == "Casa de apuestas") {
+        } else if (selectedScope == "Cuenta") {
             // Igual que arriba pero con la casa de apuestas.
             for (bet in allBets) {
                 val value = bet.bookmaker.trim()
@@ -208,7 +208,7 @@ class StatsFragment : Fragment() {
                     (selectedSubject != null && bet.tipster.trim() == selectedSubject)
             }
 
-            if (include && scope == "Casa de apuestas") {
+            if (include && scope == "Cuenta") {
                 include = selectedSubject == allSubjectsLabel ||
                     (selectedSubject != null && bet.bookmaker.trim() == selectedSubject)
             }

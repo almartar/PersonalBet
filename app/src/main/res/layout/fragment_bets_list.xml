@@ -37,18 +37,29 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="6dp"
         android:layout_marginEnd="8dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/bets_filter_result"
-            android:textAppearance="?attr/textAppearanceLabelMedium" />
+        android:orientation="horizontal">
 
         <Spinner
             android:id="@+id/spinner_result_filter"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="44dp" />
+
+        <Spinner
+            android:id="@+id/spinner_bookmaker_filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:minHeight="44dp" />
+
+        <Spinner
+            android:id="@+id/spinner_tipster_filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
             android:minHeight="44dp" />
     </LinearLayout>
 

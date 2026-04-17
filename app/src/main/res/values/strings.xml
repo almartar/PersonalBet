@@ -10,8 +10,10 @@
     <string name="bets_filter_date_value">Rango: %1$s - %2$s</string>
     <string name="bets_filter_clear">Limpiar</string>
     <string name="bets_filter_result">Resultado</string>
+    <string name="bets_filter_bookmaker">Cuenta</string>
+    <string name="bets_filter_tipster">Tipster</string>
     <string name="delete_bet">Eliminar apuesta</string>
-    <string name="field_bookmaker">Casa de apuestas</string>
+    <string name="field_bookmaker">Cuenta</string>
     <string name="field_sport">Deporte</string>
     <string name="field_tipster">Tipster</string>
     <string name="field_type_name">Tipo de apuesta</string>
@@ -23,7 +25,7 @@
     <string name="select_date">Seleccionar fecha</string>
     <string name="field_result">Resultado</string>
     <string name="save_bet">Guardar</string>
-    <string name="add_bet_error_required">Completa casa, deporte y evento.</string>
+    <string name="add_bet_error_required">Completa cuenta, deporte y evento.</string>
     <string name="add_bet_error_numbers">Cuota e importe deben ser números mayores que 0.</string>
     <string name="stats_net_title">Beneficio neto (apuestas cerradas)</string>
     <string name="stats_staked_title">Total apostado (ganadas + perdidas)</string>
@@ -77,7 +79,7 @@
     <string name="welcome_subtitle">Controla tus apuestas y tus estadísticas.</string>
     <string name="welcome_button">Entrar</string>
     <string name="config_title">Configuración de listas</string>
-    <string name="config_bookmakers_hint">Casas de apuestas (separadas por coma)</string>
+    <string name="config_bookmakers_hint">Cuentas (separadas por coma)</string>
     <string name="config_tipsters_hint">Tipsters (separados por coma)</string>
     <string name="config_markets_hint">Mercados (separados por coma)</string>
     <string name="config_live_types_hint">Tipos de apuesta (coma) - ej: Live,PreMatch</string>

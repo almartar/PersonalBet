@@ -34,6 +34,8 @@ class BetsListFragment : Fragment() {
     private var selectedFromMillis: Long? = null
     private var selectedToMillis: Long? = null
     private val resultFilterOptions = listOf("Todas", "Ganadas", "Perdidas", "Pendientes")
+    private val bookmakerFilterOptions = mutableListOf("Todas")
+    private val tipsterFilterOptions = mutableListOf("Todos")
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -74,9 +76,24 @@ class BetsListFragment : Fragment() {
 
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
+        binding.spinnerBookmakerFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                applyBetsFilter()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+        binding.spinnerTipsterFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                applyBetsFilter()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
         binding.fabAdd.setOnClickListener {
             (requireActivity() as MainActivity).openAddBetScreen()
         }
+        refreshDynamicFilterAdapters()
         updateFilterButtons()
     }
 
@@ -93,6 +110,7 @@ class BetsListFragment : Fragment() {
             if (_binding == null) return@launch
             allBets.clear()
             allBets.addAll(list)
+            refreshDynamicFilterAdapters()
             applyBetsFilter()
             updateFilterButtons()
         }
@@ -100,6 +118,12 @@ class BetsListFragment : Fragment() {
 
     private fun applyBetsFilter() {
         val selectedResultFilter = resultFilterOptions[binding.spinnerResultFilter.selectedItemPosition]
+        val selectedBookmakerFilter = bookmakerFilterOptions.getOrNull(
+            binding.spinnerBookmakerFilter.selectedItemPosition,
+        ) ?: "Todas"
+        val selectedTipsterFilter = tipsterFilterOptions.getOrNull(
+            binding.spinnerTipsterFilter.selectedItemPosition,
+        ) ?: "Todos"
         val filtered = allBets.filter { bet ->
             val dateMatches = if (selectedFromMillis != null && selectedToMillis != null) {
                 bet.datePlacedMillis >= selectedFromMillis!! && bet.datePlacedMillis < selectedToMillis!!
@@ -112,11 +136,55 @@ class BetsListFragment : Fragment() {
                 "Pendientes" -> BetResult.fromStorage(bet.result) == BetResult.PENDING
                 else -> true
             }
-            dateMatches && resultMatches
+            val bookmakerMatches = selectedBookmakerFilter == "Todas" ||
+                bet.bookmaker.equals(selectedBookmakerFilter, ignoreCase = true)
+            val tipsterMatches = selectedTipsterFilter == "Todos" ||
+                bet.tipster.equals(selectedTipsterFilter, ignoreCase = true)
+            dateMatches && resultMatches && bookmakerMatches && tipsterMatches
         }
         adapter.replaceAll(filtered)
         binding.emptyState.visibility =
             if (filtered.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun refreshDynamicFilterAdapters() {
+        val currentBookmaker = bookmakerFilterOptions.getOrNull(binding.spinnerBookmakerFilter.selectedItemPosition)
+            ?: "Todas"
+        val currentTipster = tipsterFilterOptions.getOrNull(binding.spinnerTipsterFilter.selectedItemPosition)
+            ?: "Todos"
+
+        val bookmakers = allBets.map { it.bookmaker.trim() }
+            .filter { it.isNotBlank() }
+            .distinctBy { it.lowercase(Locale.ROOT) }
+            .sortedBy { it.lowercase(Locale.ROOT) }
+        bookmakerFilterOptions.clear()
+        bookmakerFilterOptions.add("Todas")
+        bookmakerFilterOptions.addAll(bookmakers)
+
+        val tipsters = allBets.map { it.tipster.trim() }
+            .filter { it.isNotBlank() }
+            .distinctBy { it.lowercase(Locale.ROOT) }
+            .sortedBy { it.lowercase(Locale.ROOT) }
+        tipsterFilterOptions.clear()
+        tipsterFilterOptions.add("Todos")
+        tipsterFilterOptions.addAll(tipsters)
+
+        binding.spinnerBookmakerFilter.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_dropdown_item,
+            bookmakerFilterOptions,
+        )
+        binding.spinnerTipsterFilter.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_dropdown_item,
+            tipsterFilterOptions,
+        )
+        binding.spinnerBookmakerFilter.setSelection(
+            bookmakerFilterOptions.indexOf(currentBookmaker).takeIf { it >= 0 } ?: 0,
+        )
+        binding.spinnerTipsterFilter.setSelection(
+            tipsterFilterOptions.indexOf(currentTipster).takeIf { it >= 0 } ?: 0,
+        )
     }
 
     private fun showDateFilterPicker() {
