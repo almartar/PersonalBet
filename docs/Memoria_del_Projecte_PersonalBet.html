@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Memoria del Projecte PersonalBet</title>
+  <style>
+@page { size: A4; margin: 22mm 20mm 24mm 20mm; }
+* { box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", Calibri, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #1a1a1a;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+h1 {
+  font-size: 20pt;
+  color: #0f3460;
+  border-bottom: 2px solid #0f3460;
+  padding-bottom: 6px;
+  margin: 0 0 14px 0;
+  page-break-after: avoid;
+}
+h2 {
+  font-size: 14pt;
+  color: #16213e;
+  margin: 22px 0 10px 0;
+  page-break-after: avoid;
+}
+h3, h4 {
+  font-size: 12pt;
+  color: #1a1a2e;
+  margin: 16px 0 8px 0;
+  page-break-after: avoid;
+}
+p { margin: 0 0 10px 0; }
+ul, ol { margin: 0 0 12px 0; padding-left: 22px; }
+li { margin-bottom: 4px; }
+strong { color: #0f3460; }
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 18px 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 18px 0;
+  font-size: 10pt;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 1px solid #b8c5d6;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #e8eef5; font-weight: 600; }
+tr:nth-child(even) td { background: #f7f9fc; }
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 9.5pt;
+  background: #f0f4f8;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+pre {
+  background: #f0f4f8;
+  border: 1px solid #d0dae8;
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 9pt;
+  line-height: 1.35;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  page-break-inside: avoid;
+}
+.meta {
+  background: #f0f4f8;
+  border-left: 4px solid #0f3460;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 10.5pt;
+}
+.meta p { margin: 4px 0; }
+blockquote {
+  margin: 12px 0;
+  padding: 10px 16px;
+  border-left: 4px solid #94a3b8;
+  background: #f8fafc;
+  color: #334155;
+  font-style: italic;
+}
+.cover-title { font-size: 24pt; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="meta"><p><strong>Alumne:</strong> Alberto Martí Armiñana</p><p><strong>Cicle formatiu:</strong> DAM — Desenvolupament d'Aplicacions Multiplataforma (Grau Superior)</p><p><strong>Centre:</strong> IES Dr. Lluís Simarro — Avda. Corts Valencianes, s/n — 46800 Xàtiva (València)</p><p><strong>Tutor/a del projecte:</strong> Enric Climent Martí</p><p><strong>Curs acadèmic:</strong> 2025–2026</p><p><strong>Data de lliurament:</strong> 5 de juny de 2026</p><p><strong>Avantatges:</strong> eina específica per al domini d’apuestas; funcionament offline; dades sota control de l’usuari; exportació CSV; interfície en castellà amb navegació inferior clara; càlcul automàtic de mètriques que faciliten la visió fiscal anual.</p><p><strong>Desavantatges:</strong> només Android en aquesta versió; sense sincronització al núvol; lògica de negoci concentrada als Fragments (dificulta tests unitaris); la importació CSV d’apuestas crea registres nous en lloc d’actualitzar per identificador; la cifra fiscal és orientativa i depèn de la correcta introducció de dades per l’usuari.</p><p><strong>Room (SQLite) emmagatzema les apuestas a la taula `bets`. Cada registre inclou:</strong> casa, esport, tipster, descripció de l’event, quota, import, tipus (Live/PreMatch), mercat, resultat i data en mil·lisegons. La versió 2 de la base de dades afegeix camps de tipus i mercat mitjançant una migració controlada.</p><p><strong>SharedPreferences s’utilitza per a dades de configuració i comptes:</strong> </p><p><strong>WelcomeFragment:</strong> pantalla inicial amb botó «Entrar» que obre la llista d’apuestas i mostra la navegació inferior.</p><p><strong>BetsListFragment:</strong> carrega apuestas des de Room en `onResume` amb coroutines; mostra RecyclerView amb `BetsAdapter`; filtres en memòria; FAB per afegir; tap per verificar resultat; pulsació llarga per editar.</p><p><strong>AddBetFragment:</strong> formulari amb Spinners alimentats per `AppConfigStore`; validació de camps obligatoris i numèrics; modes alta i edició; ajust d’insets per teclat (IME).</p><p><strong>StatsFragment:</strong> calcula benefici net, total apostat, ROI i encerts sobre apuestas WON/LOST; filtres per període global o rang de dates, àmbit (general/tipster/cuenta), tipus, mercat i esport. Per a l’ús orientatiu fiscal, l’usuari selecciona període per rang i tria del 1 de gener al 31 de desembre de l’any a declarar.</p><p><strong>AnnualSummaryFragment:</strong> mostra targetes per casa amb dipòsits, retirs, saldo inicial, benefici de apuestas i saldo; diàlegs per moviments amb data «avui» o manual.</p><p><strong>ConfigFragment:</strong> edició de llistes CSV; exportació de `apuestas_export.csv` i `cuentas_export.csv`; importació via Storage Access Framework; esborrat massiu amb confirmació.</p></div>
+<h1>MEMÒRIA DEL PROJECTE</h1>
+<h2>PersonalBet — Aplicació Android per al control personal d’apuestas esportives</h2>
+<hr />
+<h2>1. ÍNDEX</h2>
+<table>
+<thead>
+<tr>
+<th>Secció</th>
+<th>Contingut</th>
+<th>Pàg.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Índex general</td>
+<td>2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Introducció</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2.1</td>
+<td>Contextualització (Annexe 1)</td>
+<td>8</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Objectius</td>
+<td>14</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Desenvolupament del projecte</td>
+<td>16</td>
+</tr>
+<tr>
+<td>4.1</td>
+<td>Fase d’anàlisi</td>
+<td>16</td>
+</tr>
+<tr>
+<td>4.2</td>
+<td>Fase de disseny</td>
+<td>20</td>
+</tr>
+<tr>
+<td>4.3</td>
+<td>Fase d’implementació</td>
+<td>26</td>
+</tr>
+<tr>
+<td>4.4</td>
+<td>Fase de proves</td>
+<td>34</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Avaluació de resultats</td>
+<td>36</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Conclusions</td>
+<td>38</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Recursos</td>
+<td>40</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Índex de figures</td>
+<td>42</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Contingut del suport USB</td>
+<td>43</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Bibliografia</td>
+<td>45</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Annexos</td>
+<td>47</td>
+</tr>
+<tr>
+<td><em>Actualitzar la paginació en exportar des de Word amb capçalera i peu configurats.</em></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>## 2. INTRODUCCIÓ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest capítol es descriu el problema que motiva el projecte, les alternatives existents, la solució proposada mitjançant l’aplicació PersonalBet i la contextualització acadèmica i social del treball. També s’hi justifica la rellevància del benefici net anual com a dada orientativa per a obligacions fiscals de l’usuari.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.1 Necessitat detectada i problema</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>El sector de les apuestas esportives en línia ha crescut de forma notable a l’Estat espanyol, on l’activitat es troba regulada per la Direcció General de Ordenació del Joc (DGOJ). Malgrat aquesta regulació, l’usuari mitjà que aposta en una o diverses cases no disposa d’eines adaptades per a les seues necessitats de control personal. En concret, es detecten les mancances següents:</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>Registre dispers:</strong> cada apuesta es desa en fulls de càlcul, notes del mòbil o historials separats per operador, sense un model de dades unificat.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>Mètriques incompletes:</strong> les aplicacions de les cases mostren el saldo oficial, però no permeten calcular el ROI global, el rendiment per tipster ni el benefici net en un període concret amb filtres personalitzats.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>Bankroll fragmentat:</strong> els dipòsits i retirs per casa no s’integren fàcilment amb el rendiment de les apuestas tancades.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>Obligacions fiscals:</strong> a l’hora de declarar davant l’Agència Tributària (AEAT), l’usuari necessita conèixer el <strong>benefici net obtingut en un exercici (any natural)</strong>. Sense un registre fiable de apuestas guanyades i perdudes amb data, aquesta xifra és difícil d’obtenir i propensa a errors si es reconstrueix a posteriori.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Aquesta mancança genera decisions poc informades, pèrdua de temps en manteniment manual i risc de perdre dades en canviar de dispositiu.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.2 Solucions prèvies o alternatives</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Solució</td>
+<td>Avantatges</td>
+<td>Desavantatges</td>
+</tr>
+<tr>
+<td>---------</td>
+<td>------------</td>
+<td>---------------</td>
+</tr>
+<tr>
+<td>Full de càlcul (Excel/Sheets)</td>
+<td>Flexible, familiar, exportable</td>
+<td>Manteniment manual, UX poc adaptada al mòbil, errors en fórmules</td>
+</tr>
+<tr>
+<td>Apps de casas de apostes</td>
+<td>Dades oficials de saldo i historial</td>
+<td>No agrupen diverses cases ni tipsters; dades tancades per operador</td>
+</tr>
+<tr>
+<td>Apps genèriques de finances</td>
+<td>Gràfics i categories</td>
+<td>No modelen quota, ROI ni estats WON/LOST/PENDING</td>
+</tr>
+<tr>
+<td>Notes o paper</td>
+<td>Rapidesa inicial</td>
+<td>Sense càlculs ni estadístiques ni backup estructurat</td>
+</tr>
+<tr>
+<td>Cap d’aquestes opcions cobreix de forma integral el registre d’apuestas, l’anàlisi de rendiment, la gestió de comptes per casa i la consulta del benefici per exercici fiscal en una sola aplicació mòbil offline.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.3 Plantejament de la nova solució</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>La solució integra en una sola app:</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>1. <strong>Registre i edició</strong> d’apuestas amb filtres per data, resultat, casa i tipster.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2. <strong>Estadístiques</strong> de rendiment (benefici net, total apostat, ROI, percentatge d’encerts) amb filtres per període, àmbit, tipus Live/PreMatch, mercat i esport.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3. <strong>Gestió de comptes</strong> per casa de apostes (saldo inicial, dipòsits, retirs, benefici de apuestas, saldo final).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4. <strong>Configuració</strong> de llistes desplegables i <strong>exportació/importació CSV</strong> per a còpies de seguretat.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5. <strong>Consulta del benefici net per període</strong> (per exemple, l’any complet 1/1–31/12) mitjançant filtres de dates a la pantalla d’Estadístiques, com a <strong>referència orientativa</strong> per a la declaració fiscal (sense substituir assessorament professional).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.4 Avantatges i desavantatges de la solució aportada</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>## 2.5 CONTEXTUALITZACIÓ (Annexe 1 — Part FOL/EIE)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest apartat es contextualitza el projecte dins del centre educatiu, la població objectiu i el sector tecnològic i empresarial relacionat.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.5.1 Naturalesa i justificació del projecte</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>El marc teòric inclou el desenvolupament d’apps natives amb Android SDK, persistència amb Room i SharedPreferences, i principis d’UX de Material Design.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.5.2 Població objectiu</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Tipus</td>
+<td>Descripció</td>
+<td></td>
+</tr>
+<tr>
+<td>-------</td>
+<td>------------</td>
+<td></td>
+</tr>
+<tr>
+<td>Beneficiaris directes</td>
+<td>Usuaris adults amb activitat d’apuestas en una o diverses cases en línia</td>
+<td></td>
+</tr>
+<tr>
+<td>Beneficiaris indirectes</td>
+<td>Tutors, analistes de rendiment; el centre educatiu com a avaluador</td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.5.3 Localització geogràfica</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>El desenvolupament s’ha realitzat a Xàtiva (Comunitat Valenciana). L’app està pensada per a usuaris de l’àmbit estatal (interfície en castellà, euros), sense dependre d’una ubicació física d’empresa host.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 2.5.4 Anàlisi del context sectorial</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>El sector de les apuestas en línia creix però les apps dels operadors no ofereixen analítica unificada entre cases. En paral·lel, el sector IT demanda perfils Android amb competències en persistència i UX. Oportunitats futures: backend, versió iOS, alertes de bankroll. Obligacions en desplegament real: RGPD, joc responsable i normativa fiscal (l’app no realitza apuestas, només registra dades introduïdes per l’usuari).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>## 3. OBJECTIUS</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest capítol es defineixen l’objectiu general del projecte i els objectius específics mesurables, que seran avaluats al capítol 5.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 3.1 Objectiu general</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Desenvolupar una aplicació Android funcional que permeti a l’usuari controlar de forma centralitzada les seues apuestas esportives, el rendiment econòmic associat i una visió del benefici net per exercici, amb suport de dades exportables.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 3.2 Objectius específics</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>#</td>
+<td>Objectiu</td>
+<td>Indicador de compliment</td>
+</tr>
+<tr>
+<td>---</td>
+<td>----------</td>
+<td>-------------------------</td>
+</tr>
+<tr>
+<td>O1</td>
+<td>Registrar apuestas amb camps complets</td>
+<td>Formulari d’alta/edició operatiu</td>
+</tr>
+<tr>
+<td>O2</td>
+<td>Gestionar resultats WON/LOST/PENDING</td>
+<td>Diàleg de verificació + Room</td>
+</tr>
+<tr>
+<td>O3</td>
+<td>Mostrar estadístiques i ROI</td>
+<td>Pantalla Estadístiques amb filtres</td>
+</tr>
+<tr>
+<td>O4</td>
+<td>Gestionar comptes per casa</td>
+<td>Pantalla Resumen anual</td>
+</tr>
+<tr>
+<td>O5</td>
+<td>Configurar llistes desplegables</td>
+<td>AppConfigStore + ConfigFragment</td>
+</tr>
+<tr>
+<td>O6</td>
+<td>Exportar/importar CSV</td>
+<td>Fitxers a Documents/PersonalBet</td>
+</tr>
+<tr>
+<td>O7</td>
+<td>Arquitectura Single Activity + Fragments</td>
+<td>MainActivity + 6 fragments</td>
+</tr>
+<tr>
+<td>O8</td>
+<td>Benefici net per any natural (orientatiu fiscal)</td>
+<td>Filtre de dates a Estadístiques</td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>## 4. DESENVOLUPAMENT DEL PROJECTE</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest capítol es documenten les fases d’anàlisi, disseny, implementació i proves que han conduït a la versió lliurable de PersonalBet. Cada fase s’ha planificat en coordinació amb el tutor del projecte.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>### 4.1 Fase d’anàlisi</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>#### 4.1.1 Requisits funcionals</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF01</strong> — Llistar apuestas amb filtres per data, resultat, casa i tipster.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF02</strong> — Afegir i editar apuestas amb validació de camps numèrics i obligatoris.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF03</strong> — Eliminar apuestas individuals o totes (amb confirmació en el cas massiu).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF04</strong> — Canviar el resultat des de la llista mitjançant diàleg.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF05</strong> — Calcular benefici net, total apostat, ROI i ràtio d’encerts amb filtres múltiples.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF06</strong> — Gestionar per casa: saldo inicial, dipòsits, retirs, benefici i saldo final.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF07</strong> — Mantenir llistes configurables (casas, tipsters, mercats, tipus).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF08</strong> — Exportar i importar CSV d’apuestas i comptes.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RF09</strong> — Consultar benefici net d’un exercici mitjançant rang de dates (ús orientatiu fiscal).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>#### 4.1.2 Requisits no funcionals</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RNF01</strong> — Compatibilitat minSdk 24 (Android 7.0+).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RNF02</strong> — Funcionament 100 % offline.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RNF03</strong> — Operacions de base de dades en segon pla (Coroutines, Dispatchers.IO).</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RNF04</strong> — Interfície Material Design i suport edge-to-edge.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>RNF05</strong> — Idioma de la interfície: castellà.</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>#### 4.1.3 Casos d’ús</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Codi</td>
+<td>Descripció</td>
+<td>Flux principal</td>
+</tr>
+<tr>
+<td>------</td>
+<td>------------</td>
+<td>----------------</td>
+</tr>
+<tr>
+<td>UC01</td>
+<td>Registrar apuesta</td>
+<td>FAB → formulari → validació → insert Room</td>
+</tr>
+<tr>
+<td>UC02</td>
+<td>Verificar resultat</td>
+<td>Tap a apuesta → diàleg → updateResult</td>
+</tr>
+<tr>
+<td>UC03</td>
+<td>Estadístiques</td>
+<td>Tab Stats → filtres → càlcul en memòria</td>
+</tr>
+<tr>
+<td>UC04</td>
+<td>Compte per casa</td>
+<td>Tab Resumen → tarjeta → dipòsit/retir</td>
+</tr>
+<tr>
+<td>UC05</td>
+<td>Exportar</td>
+<td>Config → CSV a carpeta de l’app</td>
+</tr>
+<tr>
+<td>UC06</td>
+<td>Benefici anual</td>
+<td>Stats → període rang → 01/01–31/12</td>
+</tr>
+<tr>
+<td>#### 4.1.4 Planificació temporal (resum)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Fase</td>
+<td>Activitats</td>
+<td>Durada aproximada</td>
+</tr>
+<tr>
+<td>------</td>
+<td>------------</td>
+<td>-------------------</td>
+</tr>
+<tr>
+<td>Anàlisi</td>
+<td>Requisits, casos d’ús, model de dades</td>
+<td>2 setmanes</td>
+</tr>
+<tr>
+<td>Disseny</td>
+<td>Wireframes, arquitectura, BD</td>
+<td>2 setmanes</td>
+</tr>
+<tr>
+<td>Implementació</td>
+<td>Fragments, Room, CSV, comptes</td>
+<td>6 setmanes</td>
+</tr>
+<tr>
+<td>Proves i documentació</td>
+<td>Tests manuals, memòria, USB</td>
+<td>2 setmanes</td>
+</tr>
+<tr>
+<td>### 4.2 Fase de disseny</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>#### 4.2.1 Arquitectura lògica</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>S’ha adoptat el patró <strong>Single Activity</strong>: <code>MainActivity</code> allotja un <code>FrameLayout</code> i commuta Fragments segons la barra de navegació inferior. Les pantalles secundàries (afegir apuesta) s’empilen al back stack i amaguen la barra inferior per guanyar espai.</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<pre><code>MainActivity (BottomNavigation)
+ ├── WelcomeFragment
+ ├── BetsListFragment ↔ AddBetFragment
+ ├── StatsFragment
+ ├── AnnualSummaryFragment
+ └── ConfigFragment
+         ↓
+ Room (Bet, BetDao, AppDatabase v2)
+ SharedPreferences (AppConfigStore, BookmakerAccountsStore)
+</code></pre>
+<p>No s’ha utilitzat Navigation Component ni injecció de dependències en aquesta versió, per coherència amb el temari treballat (UD07 Fragments) i per reduir la complexitat del projecte acadèmic.</p>
+<h4>4.2.2 Model de dades i persistència</h4>
+<ul>
+<li><code>AppConfigStore</code>: llistes CSV de casas, tipsters, mercats i tipus d’apuesta.</li>
+<li><code>BookmakerAccountsStore</code>: saldo inicial i moviments (dipòsits/retirs) serialitzats per casa.<br />
+Aquesta separació és adequada perquè les apuestas són molts registres amb consultes, mentre la configuració i els moviments són volums reduïts en format clau-valor.</li>
+</ul>
+<h4>4.2.3 Fórmules de negoci</h4>
+<ul>
+<li>Apuesta <strong>guanyada:</strong> benefici = <code>stake × (odds − 1)</code>.</li>
+<li>Apuesta <strong>perduda:</strong> benefici = <code>−stake</code>.</li>
+<li>Apuesta <strong>pendent:</strong> no compta en estadístiques ni en benefici fiscal fins que es tanque.</li>
+<li><strong>ROI:</strong> <code>(benefici_net / total_apostat) × 100</code> sobre apuestas liquidades.</li>
+<li><strong>Saldo de compte:</strong> <code>saldo_inicial + dipòsits − retirs + benefici_apuestas</code>.</li>
+</ul>
+<h4>4.2.4 Disseny d’interfície</h4>
+<p>S’han definit sis pantalles principals més la de benvinguda. Es fa servir View Binding per a accés segur a vistes XML. La paleta utilitza colors semàntics per a valors positius, negatius i neutres en beneficis. La navegació inferior té quatre pestanyes: Apuestas, Estadístiques, Resumen anual i Configuració.</p>
+<h3>4.3 Fase d’implementació</h3>
+<h4>4.3.1 Tecnologies i entorn</h4>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Versió</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kotlin</td>
+<td>2.0.21</td>
+</tr>
+<tr>
+<td>Android Gradle Plugin</td>
+<td>8.10.1</td>
+</tr>
+<tr>
+<td>compileSdk / targetSdk</td>
+<td>36</td>
+</tr>
+<tr>
+<td>minSdk</td>
+<td>24</td>
+</tr>
+<tr>
+<td>Room</td>
+<td>2.6.1 (KSP)</td>
+</tr>
+<tr>
+<td>Coroutines</td>
+<td>1.10.2</td>
+</tr>
+<tr>
+<td>Material Components</td>
+<td>1.13.0</td>
+</tr>
+<tr>
+<td>L’entorn de desenvolupament ha estat Android Studio en Windows 10, amb control de versions Git.</td>
+<td></td>
+</tr>
+<tr>
+<td>#### 4.3.2 Implementació per pantalles</td>
+<td></td>
+</tr>
+<tr>
+<td>#### 4.3.3 Detalls tècnics transversals</td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>Concurrencia:</strong> <code>lifecycleScope.launch(Dispatchers.IO)</code> per a Room; actualització de UI al fil principal.</td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>Dates:</strong> filtre amb interval <code>[from, to)</code> on <code>to</code> és exclusiu (+1 dia) per incloure el dia final sencer.</td>
+<td></td>
+</tr>
+<tr>
+<td>- <strong>CSV:</strong> codificació UTF-8, escapament de cometes, decimals amb Locale.US a l’exportació.</td>
+<td></td>
+</tr>
+<tr>
+<td>#### 4.3.4 Captures de pantalla i figures</td>
+<td></td>
+</tr>
+<tr>
+<td>En la versió impresa i al USB s’inclouen captures de l’aplicació. La Figura 1 mostra la pantalla de benvinguda; la Figura 2, la llista d’apuestas; la Figura 3, el formulari d’alta; la Figura 4, estadístiques amb filtre d’any; la Figura 5, resumen de comptes; la Figura 6, configuració i exportació CSV.</td>
+<td></td>
+</tr>
+<tr>
+<td><em>[Inserir captures reals en Word amb peu: «Figura N. Descripció».]</em></td>
+<td></td>
+</tr>
+<tr>
+<td>### 4.4 Fase de proves</td>
+<td></td>
+</tr>
+<tr>
+<td>S’han executat proves manuals sistemàtiques en emulador i dispositiu físic:</td>
+<td></td>
+</tr>
+<tr>
+<td>ID</td>
+<td>Prova</td>
+</tr>
+<tr>
+<td>----</td>
+<td>-------</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Alta d’apuesta vàlida</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Edició per pulsació llarga</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Canvi a WON actualitza stats</td>
+</tr>
+<tr>
+<td>P4</td>
+<td>Filtre per tipster</td>
+</tr>
+<tr>
+<td>P5</td>
+<td>Dipòsit incrementa saldo</td>
+</tr>
+<tr>
+<td>P6</td>
+<td>Retir excessiu mostra error</td>
+</tr>
+<tr>
+<td>P7</td>
+<td>Export CSV crea fitxers</td>
+</tr>
+<tr>
+<td>P8</td>
+<td>Import CSV apuestas</td>
+</tr>
+<tr>
+<td>P9</td>
+<td>Esborrat massiu amb confirmació</td>
+</tr>
+<tr>
+<td>P10</td>
+<td>Benefici net any 2025 via rang dates</td>
+</tr>
+<tr>
+<td>Els tests automàtics JUnit/Espresso romanen com a plantilla per a futures millores (MVVM + repositoris testejables).</td>
+<td></td>
+</tr>
+<tr>
+<td>### 4.5 Gestió del projecte i comunicació</td>
+<td></td>
+</tr>
+<tr>
+<td>Durant el desenvolupament s’ha mantingut comunicació periòdica amb el tutor individual, Enric Climent Martí, per validar l’abast funcional i la documentació a lliurar. Les decisions rellevants — com mantenir Single Activity en lloc de Navigation Component, o separar Room i SharedPreferences — es van prendre prioritzant la claredat pedagògica i el compliment del temari del cicle.</td>
+<td></td>
+</tr>
+<tr>
+<td>S’ha utilitzat control de versions amb Git per a guardar l’historial del codi font. Les tasques s’han organitzat en iteracions: primer el registre d’apuestas, després estadístiques, després comptes i finalment import/export CSV. Aquest ordre ha permès provar cada increment de funcionalitat abans d’afegir complexitat.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 4.6 Ús orientatiu per a la declaració fiscal (Hisenda)</td>
+<td></td>
+</tr>
+<tr>
+<td>PersonalBet <strong>no substitueix</strong> un assessor fiscal ni emet certificats oficials. No obstant això, respon a una necessitat real de l’usuari: disposar del <strong>benefici net de les apuestas tancades</strong> en un <strong>any natural</strong> (1 de gener a 31 de desembre).</td>
+<td></td>
+</tr>
+<tr>
+<td>El procediment recomanat és el següent:</td>
+<td></td>
+</tr>
+<tr>
+<td>1. Assegurar-se que totes les apuestas de l’any estan registrades amb la data correcta.</td>
+<td></td>
+</tr>
+<tr>
+<td>2. Marcar cada apuesta com a guanyada o perduda quan es conega el resultat (les pendents no sumen fins que es tanquen).</td>
+<td></td>
+</tr>
+<tr>
+<td>3. Anar a la pantalla <strong>Estadístiques</strong>.</td>
+<td></td>
+</tr>
+<tr>
+<td>4. Seleccionar <strong>Període: Rang de data</strong> i triar des del dia 1/1/YYYY fins al 31/12/YYYY del exercici a consultar.</td>
+<td></td>
+</tr>
+<tr>
+<td>5. Llegir el <strong>benefici net</strong> mostrat a la targeta principal.</td>
+<td></td>
+</tr>
+<tr>
+<td>6. Opcionalment, exportar les apuestas en CSV des de Configuració com a registre adjunt.</td>
+<td></td>
+</tr>
+<tr>
+<td>Aquest valor es basa en la suma de <code>stake × (odds − 1)</code> per a guanyades i <code>−stake</code> per a perdudes. És la mateixa lògica que s’aplica a la pantalla de Resumen anual per al benefici de cada casa, però agregada globalment a Estadístiques amb filtres.</td>
+<td></td>
+</tr>
+<tr>
+<td>En la <strong>presentació oral</strong> davant el tribunal es destaca aquest punt com a valor diferencial respecte a apps de finances genèriques: l’app entén el domini de l’apuesta (quota, resultat, estat) i permet obtenir una xifra anual sense fulls de càlcul propensos a error.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 4.7 Seguretat, privacitat i joc responsable</td>
+<td></td>
+</tr>
+<tr>
+<td>Les dades romanen al dispositiu. No es recullen dades personals en servidors externs perquè no hi ha backend. L’usuari és responsable de fer còpies mitjançant exportació CSV i de protegir el telèfon amb bloqueig de pantalla.</td>
+<td></td>
+</tr>
+<tr>
+<td>Des del punt de vista del joc responsable, l’app no facilita realitzar apuestas: només en registra el resultat. Es recomana usar-la com a eina de conscienciació sobre el rendiment real, no com a estímul per augmentar el volum d’apostes.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 4.8 Lliçons apreses en el desenvolupament</td>
+<td></td>
+</tr>
+<tr>
+<td>Hem après la importància de definir un model de dades estable abans de multiplicar pantalles. La migració de Room de versió 1 a 2 va reforçar la necessitat de planificar camps nous (tipus i mercat) des del principi.</td>
+<td></td>
+</tr>
+<tr>
+<td>També hem comprovat que concentrar la lògica als Fragments accelera el desenvolupament inicial però dificulta les proves automatitzades; per a un projecte de producció es recomanaria extraure casos d’ús a una capa de domini o ViewModel.</td>
+<td></td>
+</tr>
+<tr>
+<td>Finalment, la documentació paral·lela (memòria, full de resum, USB, presentació) ha de planificar-se des de l’inici per no acumular-la tota l’última setmana abans del lliurament.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 4.9 Comparativa abans/després de la solució</td>
+<td></td>
+</tr>
+<tr>
+<td>Aspecte</td>
+<td>Abans (Excel/notes)</td>
+</tr>
+<tr>
+<td>---------</td>
+<td>---------------------</td>
+</tr>
+<tr>
+<td>Registre d’apuesta</td>
+<td>Manual, lent</td>
+</tr>
+<tr>
+<td>ROI i encerts</td>
+<td>Fórmules a mantenir</td>
+</tr>
+<tr>
+<td>Multi-casa</td>
+<td>Fulls separats</td>
+</tr>
+<tr>
+<td>Benefici anual</td>
+<td>Reconstrucció manual</td>
+</tr>
+<tr>
+<td>Backup</td>
+<td>Copiar fitxers</td>
+</tr>
+<tr>
+<td>Accés mòbil</td>
+<td>Incòmode</td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td>## 5. AVALUACIÓ DE RESULTATS</td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest capítol s’avalua el grau de compliment dels objectius definits al capítol 3.</td>
+<td></td>
+</tr>
+<tr>
+<td>Objectiu</td>
+<td>Estat</td>
+</tr>
+<tr>
+<td>----------</td>
+<td>-------</td>
+</tr>
+<tr>
+<td>O1–O7</td>
+<td>Complerts</td>
+</tr>
+<tr>
+<td>O8 Benefici per exercici</td>
+<td>Complert</td>
+</tr>
+<tr>
+<td>O6 CSV</td>
+<td>Complert parcial</td>
+</tr>
+<tr>
+<td>El grau global de consecució és d’aproximadament el <strong>95 %</strong>. Les limitacions conegudes (sense MVVM, sense sync núvol, import CSV sense actualització per id) no impedeixen l’ús real de l’aplicació ni la seua utilitat com a eina personal i acadèmica.</td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td>## 6. CONCLUSIONS</td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest capítol es resumeix la idoneïtat de la solució i les línies de millora futura.</td>
+<td></td>
+</tr>
+<tr>
+<td>Hem desenvolupat PersonalBet com a resposta a un problema real de gestió d’apuestas i visió de rendiment. El projecte ha permès integrar competències de Android: interfície, persistència dual (Room i SharedPreferences), lògica de negoci i exportació de dades.</td>
+<td></td>
+</tr>
+<tr>
+<td>El repte més rellevant ha estat mantenir la coherència entre el benefici calculat a Estadístiques i el mostrat per compte a Resumen anual, especialment amb filtres de dates. La consulta del benefici net per exercici — útil com a referència per a Hisenda — s’ha resolt reutilitzant els filtres existents sense afegir complexitat fiscal al codi.</td>
+<td></td>
+</tr>
+<tr>
+<td>Com a millores futures es proposen: arquitectura MVVM, tests automatitzats, sincronització opcional al núvol i una secció dedicada «Resum fiscal» amb selector d’any si es desitja més claredat per a l’usuari final.</td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td>## 7. RECURSOS</td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest capítol es detallen els recursos materials i programari emprats.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 7.1 Programari de desenvolupament</td>
+<td></td>
+</tr>
+<tr>
+<td>Android Studio (IDE, emulador, depurador), Kotlin amb JDK 11, Gradle 8.11, Git, Android SDK API 36, Room amb KSP, Material Components, Python 3 per a generació auxiliar de PDF des de Markdown.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 7.2 Maquinari</td>
+<td></td>
+</tr>
+<tr>
+<td>PC amb Windows 10, dispositiu o emulador Android API 24+ per a proves d’integració i usabilitat.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 7.3 Recursos documentals</td>
+<td></td>
+</tr>
+<tr>
+<td>Normativa del mòdul de projecte de l’IES Dr. Lluís Simarro, documentació oficial d’Android Developers, apuntes del cicle (UD Android, UD07 Fragments) i guies de Material Design.</td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td>## 8. ÍNDEX DE FIGURES</td>
+<td></td>
+</tr>
+<tr>
+<td>Figura</td>
+<td>Descripció</td>
+</tr>
+<tr>
+<td>--------</td>
+<td>------------</td>
+</tr>
+<tr>
+<td>Figura 1</td>
+<td>Pantalla de benvinguda</td>
+</tr>
+<tr>
+<td>Figura 2</td>
+<td>Llista d’apuestas amb filtres</td>
+</tr>
+<tr>
+<td>Figura 3</td>
+<td>Formulari d’alta d’apuesta</td>
+</tr>
+<tr>
+<td>Figura 4</td>
+<td>Estadístiques amb filtre d’any</td>
+</tr>
+<tr>
+<td>Figura 5</td>
+<td>Resumen de comptes per casa</td>
+</tr>
+<tr>
+<td>Figura 6</td>
+<td>Configuració i exportació CSV</td>
+</tr>
+<tr>
+<td>Totes les figures són obra de l’autor (Alberto Martí Armiñana, 2026) i es distribueixen amb la documentació del projecte educatiu.</td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td>## 9. CONTINGUT DEL SUPORT USB</td>
+<td></td>
+</tr>
+<tr>
+<td>En aquest capítol es descriu l’organització del material lliurat en suport USB, d’acord amb la normativa del mòdul de projecte.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 9.1 Estructura de carpetes</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<pre><code>USB_Projecte_PersonalBet/
+├── 00_LLEGEIX-ME.txt
+├── 01_Memoria/          → Memoria_del_Projecte_PersonalBet.pdf
+├── 02_Full_Resum/       → Full_de_Resum_PersonalBet.pdf
+├── 03_Aplicacio/        → app-debug.apk
+├── 04_Codi_Font/        → PersonalBet_codi.zip (opcional)
+├── 05_Presentacio/      → Presentacio_PersonalBet.pptx
+├── 06_Captures/         → Figues 1–6 (PNG)
+└── 07_Annexos/          → Annex_Documentacio_Tecnica.pdf
+</code></pre>
+<h3>9.2 Relació fitxers–continguts del projecte</h3>
+<table>
+<thead>
+<tr>
+<th>Carpeta</th>
+<th>Relació amb la memòria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01_Memoria</td>
+<td>Document principal (aquest document en PDF)</td>
+</tr>
+<tr>
+<td>02_Full_Resum</td>
+<td>Resum d’una pàgina per al tribunal</td>
+</tr>
+<tr>
+<td>03_Aplicacio</td>
+<td>Producte final executable</td>
+</tr>
+<tr>
+<td>05_Presentacio</td>
+<td>Exposició oral ~30 min</td>
+</tr>
+<tr>
+<td>06_Captures</td>
+<td>Figures referenciades al capítol 8</td>
+</tr>
+<tr>
+<td>07_Annexos</td>
+<td>Detall tècnic del codi font</td>
+</tr>
+<tr>
+<td>### 9.3 Instal·lació i ús de l’APK</td>
+<td></td>
+</tr>
+<tr>
+<td>1. Copiar <code>app-debug.apk</code> al dispositiu Android 7.0 o superior.</td>
+<td></td>
+</tr>
+<tr>
+<td>2. Permetre instal·lació des de fonts desconegudes si el sistema ho demana.</td>
+<td></td>
+</tr>
+<tr>
+<td>3. Obrir l’APK i confirmar la instal·lació.</td>
+<td></td>
+</tr>
+<tr>
+<td>4. No es requereix connexió a Internet per al funcionament habitual.</td>
+<td></td>
+</tr>
+<tr>
+<td>### 9.4 Programari necessari per reproduir el material</td>
+<td></td>
+</tr>
+<tr>
+<td>Fitxer</td>
+<td>Programa (gratuït)</td>
+</tr>
+<tr>
+<td>--------</td>
+<td>---------------------</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>Lector PDF, navegador, Word</td>
+</tr>
+<tr>
+<td>PPTX</td>
+<td>PowerPoint, LibreOffice Impress</td>
+</tr>
+<tr>
+<td>APK</td>
+<td>Sistema Android</td>
+</tr>
+<tr>
+<td>ZIP codi</td>
+<td>Android Studio</td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td>## 10. BIBLIOGRAFIA</td>
+<td></td>
+</tr>
+<tr>
+<td>1. Google LLC. <em>Android Developers Documentation</em>. Mountain View: Google, 2024–2026. https://developer.android.com (consulta: maig 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>2. Google LLC. <em>Guia de persistència amb Room</em>. https://developer.android.com/training/data-storage/room (consulta: maig 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>3. Google LLC. <em>Material Design 3</em>. https://m3.material.io (consulta: maig 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>4. JetBrains. <em>Documentació de Kotlin</em>. https://kotlinlang.org/docs/home.html (consulta: abril 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>5. JetBrains. <em>Coroutines Guide</em>. https://kotlinlang.org/docs/coroutines-guide.html (consulta: abril 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>6. IES Dr. Lluís Simarro (Xàtiva). <em>Elements del projecte i guia d’estil</em>. Document intern del mòdul de projecte, curs 2025–2026.</td>
+<td></td>
+</tr>
+<tr>
+<td>7. IES Dr. Lluís Simarro (Xàtiva). <em>Estructura de la memòria del projecte</em> i <em>Fases del projecte</em>. Documents interns, curs 2025–2026.</td>
+<td></td>
+</tr>
+<tr>
+<td>8. Agència Estatal d’Administració Tributària (AEAT). Informació general sobre declaració de la renda. https://sede.agenciatributaria.gob.es (consulta orientativa; maig 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>9. Direcció General de Ordenació del Joc (DGOJ). Marc regulatori del joc en línia a Espanya. https://www.ordenacionjuego.es (consulta: abril 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>10. Apuntes del cicle formatiu DAM — Desenvolupament d’aplicacions mòbils (UD Android, UD07 Fragments). IES Dr. Lluís Simarro, 2024–2026.</td>
+<td></td>
+</tr>
+<tr>
+<td>11. Android Open Source Project. <em>Guia d’arquitectura Android</em>. https://developer.android.com/topic/architecture (consulta: maig 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>12. Gamma, Erich et al. <em>Android Programming: The Big Nerd Ranch Guide</em>. 5ª ed. Big Nerd Ranch, 2022. (Referència consultada per a patrons d’Activity i Fragment.)</td>
+<td></td>
+</tr>
+<tr>
+<td>13. Phillips, Bill; Stewart, Chris; Marsicano, Kristin. <em>Android Programming: The Big Nerd Ranch Guide</em>. Big Nerd Ranch Guides, 2021. (Persistència i lifecycle.)</td>
+<td></td>
+</tr>
+<tr>
+<td>14. Material Components for Android — Documentació de BottomNavigationView i MaterialCardView. https://github.com/material-components/material-components-android (consulta: abril 2026).</td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td>## 11. ANNEXOS</td>
+<td></td>
+</tr>
+<tr>
+<td>Annex</td>
+<td>Fitxer</td>
+</tr>
+<tr>
+<td>-------</td>
+<td>--------</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Full_de_Resum_PersonalBet.pdf</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Annex_Documentacio_Tecnica.pdf</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Esquema_Presentacio.md / .pptx</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Captures (carpeta USB 06)</td>
+</tr>
+<tr>
+<td>E</td>
+<td>apuestas_export.csv (exemple)</td>
+</tr>
+<tr>
+<td>F</td>
+<td>Lliurament_Modul_Projecte_RELLENAT.docx</td>
+</tr>
+<tr>
+<td>### Annexe G — Glossari de termes</td>
+<td></td>
+</tr>
+<tr>
+<td>Terme</td>
+<td>Definició</td>
+</tr>
+<tr>
+<td>-------</td>
+<td>-----------</td>
+</tr>
+<tr>
+<td>Apuesta</td>
+<td>Operació en què es posa en joc un import (stake) amb una quota (odds) sobre un esdeveniment esportiu</td>
+</tr>
+<tr>
+<td>Bankroll</td>
+<td>Capital gestionat per a apostar; en PersonalBet es desglossa per casa</td>
+</tr>
+<tr>
+<td>ROI</td>
+<td>Return on Investment; percentatge de retorn sobre l’import total apostat en apuestas liquidades</td>
+</tr>
+<tr>
+<td>Stake</td>
+<td>Import en euros apostat en una operació</td>
+</tr>
+<tr>
+<td>Odds / Quota</td>
+<td>Factor multiplicador decimal de la casa (ex.: 2.50)</td>
+</tr>
+<tr>
+<td>Tipster</td>
+<td>Persona o font que recomana l’apuesta</td>
+</tr>
+<tr>
+<td>Live / PreMatch</td>
+<td>Apuesta en directe o abans de l’inici de l’esdeveniment</td>
+</tr>
+<tr>
+<td>Room</td>
+<td>Biblioteca de persistència sobre SQLite per a Android</td>
+</tr>
+<tr>
+<td>SharedPreferences</td>
+<td>Emmagatzematge clau-valor lleuger per a configuració</td>
+</tr>
+<tr>
+<td>CSV</td>
+<td>Fitxer de valors separats per comes, usat per exportar i importar</td>
+</tr>
+<tr>
+<td>Exercici fiscal</td>
+<td>Any natural (1 gener – 31 desembre) de referència per a la declaració</td>
+</tr>
+<tr>
+<td>APK</td>
+<td>Paquet d’instal·lació d’una aplicació Android</td>
+</tr>
+<tr>
+<td>### Annexe H — Descripció ampliada de fitxers del projecte</td>
+<td></td>
+</tr>
+<tr>
+<td>El mòdul principal de l’app és <code>app</code>, que conté el codi Kotlin, recursos XML (layouts, strings, colors, themes) i el manifest. <code>PersonalBetApplication</code> inicialitza la base de dades Room en arrencar el procés. <code>MainActivity</code> centralitza la navegació i exposa mètodes <code>openAddBetScreen</code>, <code>openEditBetScreen</code> i <code>openHomeFromWelcome</code> per a la comunicació entre fragments.</td>
+<td></td>
+</tr>
+<tr>
+<td>A la carpeta <code>data</code>, <code>Bet.kt</code> defineix l’entitat amb anotacions Room; <code>BetDao.kt</code> declara consultes d’inserció, actualització, esborrat i consultes agregades; <code>BetResult.kt</code> enumera els estats possibles. A <code>config</code>, els objectes singleton <code>AppConfigStore</code> i <code>BookmakerAccountsStore</code> encapsulen l’accés a SharedPreferences sense exposar claus al resta de l’app.</td>
+<td></td>
+</tr>
+<tr>
+<td>Els layouts principals són <code>activity_main.xml</code> (contenidor i bottom navigation), <code>fragment_bets_list.xml</code>, <code>fragment_add_bet.xml</code>, <code>fragment_stats.xml</code>, <code>fragment_annual_summary.xml</code> i <code>fragment_config.xml</code>. S’ha fet servir View Binding per evitar <code>findViewById</code> manual i reduir errors en temps de compilació.</td>
+<td></td>
+</tr>
+<tr>
+<td>El fitxer <code>build.gradle.kts</code> del mòdul app declara dependències de AndroidX, Material, Room amb KSP i Coroutines. El <code>minSdk</code> 24 cobreix la majoria de dispositius en ús; el <code>targetSdk</code> 36 alinea el projecte amb les últimes APIs disponibles al SDK instal·lat.</td>
+<td></td>
+</tr>
+<tr>
+<td>### Annexe I — Instruccions per adaptar aquest document a la guia d’estil del centre</td>
+<td></td>
+</tr>
+<tr>
+<td>En obrir aquest fitxer a Microsoft Word es recomana: configurar marges de 2,5 cm; tipus Arial 11; interlineat 1,0; inserir salt de pàgina abans de cada capítol numerat (2, 3, 4…); afegir capçalera amb «PersonalBet — [nom secció]» i peu amb «Alberto Martí Armiñana» i número de pàgina; generar índex automàtic i índex de figures; inserir logotips del centre i de la família professional a la portada; redactar la contraportada amb el resum del Full de Resum; actualitzar la taula d’índex amb paginació real.</td>
+<td></td>
+</tr>
+<tr>
+<td>La longitud d’aquest document en processador de text, juntament amb les figures i annexos en USB, ha de superar les <strong>20 pàgines</strong> i les <strong>5000 paraules</strong> exigides per la normativa del mòdul de projecte de l’IES Dr. Lluís Simarro.</td>
+<td></td>
+</tr>
+<tr>
+<td>### Annexe J — Resum de l’exposició oral davant el tribunal</td>
+<td></td>
+</tr>
+<tr>
+<td>L’exposició de circa 30 minuts segueix l’esquema de la presentació PowerPoint: problema (dispersió de dades i necessitat fiscal), alternatives descartades, solució PersonalBet, diapositiva específica de <strong>benefici anual i Hacienda</strong>, demostració en viu de l’app (filtre d’any a Estadístiques), stack tècnic, arquitectura, resultats i conclusions. Es recomana assaig previ a la sala amb el tutor per ajustar el temps i preparar respostes a preguntes sobre Room versus SharedPreferences, privacitat de dades i limitacions de la importació CSV.</td>
+<td></td>
+</tr>
+<tr>
+<td>### Annexe K — Dades de lliurament</td>
+<td></td>
+</tr>
+<tr>
+<td>Camp</td>
+<td>Valor</td>
+</tr>
+<tr>
+<td>------</td>
+<td>--------</td>
+</tr>
+<tr>
+<td>Alumne</td>
+<td>Alberto Martí Armiñana</td>
+</tr>
+<tr>
+<td>DNI</td>
+<td>20831271X</td>
+</tr>
+<tr>
+<td>Centre</td>
+<td>IES Dr. Lluís Simarro, Xàtiva</td>
+</tr>
+<tr>
+<td>Tutor</td>
+<td>Enric Climent Martí</td>
+</tr>
+<tr>
+<td>Data de lliurament</td>
+<td>5/06/2026</td>
+</tr>
+<tr>
+<td>Cicle</td>
+<td>DAM</td>
+</tr>
+<tr>
+<td>Documents lliurats: memòria PDF, full de resum PDF, USB amb APK i annexos, formulari de lliurament signat, presentació PPTX.</td>
+<td></td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+</tr>
+<tr>
+<td><em>Fi de la memòria del projecte — Alberto Martí Armiñana — IES Dr. Lluís Simarro — 2025–2026</em></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,31 @@
+PERSONALBET — CONTINGUT DEL USB
+================================
+Alumne: Alberto Martí Armiñana (DAM)
+Centre: IES Dr. Lluís Simarro — Xàtiva
+Tutor: Enric Climent Martí
+Data: 5/06/2026
+
+ESTRUCTURA DE CARPETES
+----------------------
+01_Memoria/          Memòria del projecte (PDF)
+02_Full_Resum/       Full de resum (PDF, ~1 pàgina)
+03_Aplicacio/        APK Android per instal·lar (app-debug.apk)
+04_Codi_Font/        Codi font del projecte (ZIP, opcional)
+05_Presentacio/      Diapositives de l'exposició (PPTX)
+06_Captures/         Captures de pantalla de l'aplicació
+07_Annexos/          Documentació tècnica addicional (PDF)
+
+PROGRAMARI NECESSARI
+--------------------
+- Android 7.0 o superior per executar l'APK
+- Lector PDF per a la memòria
+- Microsoft PowerPoint o LibreOffice Impress per a la presentació
+- Android Studio (opcional) per obrir el codi font
+
+INSTAL·LACIÓ DE L'APK
+---------------------
+1. Copiar app-debug.apk al telèfon
+2. Activar "Instal·lar aplicacions desconegudes" si cal
+3. Obrir el fitxer APK i confirmar
+
+Copyright: captures i documentació © Alberto Martí Armiñana, 2026.
