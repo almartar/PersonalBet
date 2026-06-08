@@ -13,6 +13,9 @@
     <string name="bets_filter_bookmaker">Cuenta</string>
     <string name="bets_filter_tipster">Tipster</string>
     <string name="delete_bet">Eliminar apuesta</string>
+    <string name="delete_bet_confirm_title">Eliminar apuesta</string>
+    <string name="delete_bet_confirm_message">¿Eliminar esta apuesta?\n\n%1$s</string>
+    <string name="edit_bet">Editar apuesta</string>
     <string name="field_bookmaker">Cuenta</string>
     <string name="field_sport">Deporte</string>
     <string name="field_tipster">Tipster</string>
@@ -27,6 +30,10 @@
     <string name="save_bet">Guardar</string>
     <string name="add_bet_error_required">Completa cuenta, deporte y evento.</string>
     <string name="add_bet_error_numbers">Cuota e importe deben ser números mayores que 0.</string>
+    <string name="add_bet_error_config">Configura las casas en Ajustes antes de añadir apuestas.</string>
+    <string name="add_bet_save_changes">Guardar cambios</string>
+    <string name="add_bet_error_insufficient_balance">Saldo insuficiente en %2$s. Disponible: %1$s €. Añade saldo en Comptes.</string>
+    <string name="config_spinner_empty">Configura en Ajustes</string>
     <string name="stats_net_title">Beneficio neto (apuestas cerradas)</string>
     <string name="stats_staked_title">Total apostado (ganadas + perdidas)</string>
     <string name="stats_roi_title">ROI aproximado</string>
@@ -82,7 +89,7 @@
     <string name="tutorial_title">Guía rápida — PersonalBet</string>
     <string name="tutorial_close">Entendido</string>
     <string name="config_tutorial">Ver guía de uso</string>
-    <string name="tutorial_body">1. APUESTAS\n• Pulsa + para añadir una apuesta.\n• Toca una apuesta para marcar ganada, perdida o pendiente.\n• Mantén pulsada para editar.\n\n2. ESTADÍSTICAS\n• Consulta beneficio neto, ROI y aciertos.\n• Usa filtros por fechas, tipster o casa.\n• Para el beneficio de un año: período por rango (01/01 – 31/12).\n\n3. RESUMEN ANUAL\n• Gestiona cada casa: saldo inicial, ingresos y retiros.\n• Toca una tarjeta para ver opciones de la cuenta.\n\n4. CONFIGURACIÓN\n• Edita listas de casas, tipsters y mercados.\n• Exportar: guarda apuestas_export.csv y cuentas_export.csv en Descargas/PersonalBet.\n• Importar: elige el CSV en Descargas/PersonalBet.\n\n5. COPIA DE SEGURIDAD\n• Exporta antes de borrar datos.\n• Las apuestas y las cuentas van en CSV distintos.\n• También puedes subir el CSV a Google Sheets desde el PC.</string>
+    <string name="tutorial_body">1. APUESTAS\n• Pulsa + para añadir una apuesta.\n• Toca una apuesta para marcar ganada, perdida o pendiente.\n• Pulsa el lápiz para editar.\n\n2. ESTADÍSTICAS\n• Consulta beneficio neto, ROI y aciertos.\n• Usa filtros por fechas, tipster o casa.\n• Para el beneficio de un año: período por rango (01/01 – 31/12).\n\n3. RESUMEN ANUAL\n• Gestiona cada casa: saldo inicial, ingresos y retiros.\n• Toca una tarjeta para ver opciones de la cuenta.\n\n4. CONFIGURACIÓN\n• Edita listas de casas, tipsters y mercados.\n• Exportar: guarda apuestas_export.csv y cuentas_export.csv en Descargas/PersonalBet.\n• Importar: elige el CSV en Descargas/PersonalBet.\n\n5. COPIA DE SEGURIDAD\n• Exporta antes de borrar datos.\n• Las apuestas y las cuentas van en CSV distintos.\n• También puedes subir el CSV a Google Sheets desde el PC.</string>
     <string name="config_title">Configuración de listas</string>
     <string name="config_bookmakers_hint">Cuentas (separadas por coma)</string>
     <string name="config_tipsters_hint">Tipsters (separados por coma)</string>

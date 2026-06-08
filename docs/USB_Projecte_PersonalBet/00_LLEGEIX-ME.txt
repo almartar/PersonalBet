@@ -13,7 +13,7 @@ ESTRUCTURA DE CARPETES
 04_Codi_Font/        Codi font del projecte (ZIP, opcional)
 05_Presentacio/      Diapositives de l'exposició (PPTX)
 06_Captures/         Captures de pantalla de l'aplicació
-07_Annexos/          Documentació tècnica addicional (PDF)
+07_Annexos/          Annex tècnic, Supertutorial, Guion i presentació oral (PDF/PPTX)
 
 PROGRAMARI NECESSARI
 --------------------

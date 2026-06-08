@@ -71,6 +71,8 @@ class AnnualSummaryFragment : Fragment() {
         val bets = filteredBetsByRange(allBets)
         val cfgBookmakers = AppConfigStore.parseCsv(AppConfigStore.get(requireContext()).bookmakersCsv)
         val fromBets = allBets.map { it.bookmaker.trim() }.filter { it.isNotBlank() }.distinct()
+        // Les cases de configuració són actives per definició (incloent altes noves sense apuestas).
+        cfgBookmakers.forEach { BookmakerAccountsStore.restoreAccount(requireContext(), it) }
         fromBets.forEach { BookmakerAccountsStore.restoreAccount(requireContext(), it) }
         val bookmakers = (cfgBookmakers + fromBets).distinct().filterNot {
             BookmakerAccountsStore.isDeleted(requireContext(), it)

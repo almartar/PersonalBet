@@ -1,6 +1,7 @@
 package com.example.personalbet.ui.add
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.personalbet.PersonalBetApplication
 import com.example.personalbet.R
 import com.example.personalbet.config.AppConfigStore
+import com.example.personalbet.config.BookmakerAccountsStore
 import com.example.personalbet.data.Bet
 import com.example.personalbet.data.BetResult
 import com.example.personalbet.databinding.FragmentAddBetBinding
@@ -57,10 +59,15 @@ class AddBetFragment : Fragment() {
         binding.spinnerResult.adapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, labels)
 
-        editingBetId = arguments?.getLong(ARG_BET_ID)
+        val args = arguments
+        editingBetId = if (args != null && args.containsKey(ARG_BET_ID)) {
+            args.getLong(ARG_BET_ID)
+        } else {
+            null
+        }
         if (editingBetId != null) {
             loadBetForEdit(editingBetId!!)
-            binding.buttonSave.text = "Guardar cambios"
+            binding.buttonSave.text = getString(R.string.add_bet_save_changes)
         } else {
             updateDateButton()
         }
@@ -96,6 +103,10 @@ class AddBetFragment : Fragment() {
         val oddsStr = binding.editOdds.text?.toString().orEmpty()
         val stakeStr = binding.editStake.text?.toString().orEmpty()
 
+        if (bookmakerOptions.isEmpty()) {
+            Snackbar.make(binding.root, R.string.add_bet_error_config, Snackbar.LENGTH_LONG).show()
+            return
+        }
         if (bookmaker.isBlank() || sport.isBlank() || event.isBlank()) {
             Snackbar.make(binding.root, R.string.add_bet_error_required, Snackbar.LENGTH_LONG).show()
             return
@@ -113,7 +124,16 @@ class AddBetFragment : Fragment() {
             else -> BetResult.PENDING
         }
 
+        val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
+            val balanceError = withContext(Dispatchers.IO) {
+                checkInsufficientBalance(appContext, bookmaker.trim(), stake, editingBetId)
+            }
+            if (_binding == null) return@launch
+            if (balanceError != null) {
+                Snackbar.make(binding.root, balanceError, Snackbar.LENGTH_LONG).show()
+                return@launch
+            }
             withContext(Dispatchers.IO) {
                 val bet = Bet(
                     id = editingBetId ?: 0,
@@ -140,12 +160,75 @@ class AddBetFragment : Fragment() {
         }
     }
 
+    private fun checkInsufficientBalance(
+        appContext: Context,
+        bookmaker: String,
+        stake: Double,
+        editingBetId: Long?,
+    ): String? {
+        val allBets = PersonalBetApplication.database.betDao().getAllBets()
+        val movements = BookmakerAccountsStore.getFor(appContext, bookmaker)
+        val initial = BookmakerAccountsStore.getInitialBalance(appContext, bookmaker)
+        val benefit = computeSettledBenefit(allBets, bookmaker)
+        val balance = initial + movements.deposits - movements.withdrawals + benefit
+
+        var pendingStakes = 0.0
+        for (bet in allBets) {
+            if (bet.bookmaker.trim() != bookmaker) continue
+            if (BetResult.fromStorage(bet.result) != BetResult.PENDING) continue
+            if (editingBetId != null && bet.id == editingBetId) continue
+            pendingStakes += bet.stake
+        }
+
+        var available = balance - pendingStakes
+        if (editingBetId != null) {
+            val editing = allBets.firstOrNull { it.id == editingBetId }
+            if (editing != null && editing.bookmaker.trim() == bookmaker) {
+                when (BetResult.fromStorage(editing.result)) {
+                    BetResult.LOST -> available += editing.stake
+                    BetResult.WON -> available -= editing.stake * (editing.odds - 1.0)
+                    BetResult.PENDING -> Unit
+                }
+            }
+        }
+        return if (stake > available + 0.005) {
+            appContext.getString(
+                R.string.add_bet_error_insufficient_balance,
+                String.format(Locale.getDefault(), "%.2f", available.coerceAtLeast(0.0)),
+                bookmaker,
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun computeSettledBenefit(bets: List<Bet>, bookmaker: String): Double {
+        var total = 0.0
+        for (bet in bets) {
+            if (bet.bookmaker.trim() != bookmaker) continue
+            when (BetResult.fromStorage(bet.result)) {
+                BetResult.WON -> total += bet.stake * (bet.odds - 1.0)
+                BetResult.LOST -> total -= bet.stake
+                BetResult.PENDING -> Unit
+            }
+        }
+        return total
+    }
+
     private fun loadBetForEdit(betId: Long) {
         viewLifecycleOwner.lifecycleScope.launch {
             val bet = withContext(Dispatchers.IO) {
                 PersonalBetApplication.database.betDao().getById(betId)
             } ?: return@launch
             if (_binding == null) return@launch
+            bookmakerOptions = mergeConfigOption(bookmakerOptions, bet.bookmaker)
+            tipsterOptions = mergeConfigOption(tipsterOptions, bet.tipster)
+            marketOptions = mergeConfigOption(marketOptions, bet.marketType)
+            val typeLabel = bet.betTypeName.ifBlank {
+                if (bet.betTypeGroup == "PREMATCH") "PreMatch" else "Live"
+            }
+            betTypeOptions = mergeConfigOption(betTypeOptions, typeLabel)
+            setupConfigSpinners()
             binding.editSport.setText(bet.sport)
             binding.editEvent.setText(bet.eventDescription)
             binding.editOdds.setText(bet.odds.toString())
@@ -155,11 +238,7 @@ class AddBetFragment : Fragment() {
             setSpinnerByValue(binding.spinnerBookmaker, bookmakerOptions, bet.bookmaker)
             setSpinnerByValue(binding.spinnerTipster, tipsterOptions, bet.tipster)
             setSpinnerByValue(binding.spinnerMarket, marketOptions, bet.marketType)
-            setSpinnerByValue(
-                binding.spinnerTypeName,
-                betTypeOptions,
-                bet.betTypeName.ifBlank { if (bet.betTypeGroup == "PREMATCH") "PreMatch" else "Live" },
-            )
+            setSpinnerByValue(binding.spinnerTypeName, betTypeOptions, typeLabel)
             val pos = when (BetResult.fromStorage(bet.result)) {
                 BetResult.PENDING -> 0
                 BetResult.WON -> 1
@@ -167,6 +246,13 @@ class AddBetFragment : Fragment() {
             }
             binding.spinnerResult.setSelection(pos)
         }
+    }
+
+    private fun mergeConfigOption(options: List<String>, value: String): List<String> {
+        val trimmed = value.trim()
+        if (trimmed.isBlank()) return options
+        if (options.any { it.equals(trimmed, ignoreCase = true) }) return options
+        return options + trimmed
     }
 
     private fun showDatePicker() {
@@ -198,21 +284,24 @@ class AddBetFragment : Fragment() {
 
     private fun loadConfigOptions() {
         val cfg = AppConfigStore.get(requireContext())
-        bookmakerOptions = AppConfigStore.parseCsv(cfg.bookmakersCsv).ifEmpty { listOf("Sin configurar") }
-        tipsterOptions = AppConfigStore.parseCsv(cfg.tipstersCsv).ifEmpty { listOf("Sin configurar") }
-        marketOptions = AppConfigStore.parseCsv(cfg.marketsCsv).ifEmpty { listOf("Otros") }
-        betTypeOptions = AppConfigStore.parseCsv(cfg.betTypesCsv).ifEmpty { listOf("Live", "PreMatch") }
+        bookmakerOptions = AppConfigStore.parseCsv(cfg.bookmakersCsv)
+        tipsterOptions = AppConfigStore.parseCsv(cfg.tipstersCsv)
+        marketOptions = AppConfigStore.parseCsv(cfg.marketsCsv)
+        betTypeOptions = AppConfigStore.parseCsv(cfg.betTypesCsv)
     }
+
+    private fun spinnerLabels(options: List<String>): List<String> =
+        options.ifEmpty { listOf(getString(R.string.config_spinner_empty)) }
 
     private fun setupConfigSpinners() {
         binding.spinnerBookmaker.adapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, bookmakerOptions)
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, spinnerLabels(bookmakerOptions))
         binding.spinnerTipster.adapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, tipsterOptions)
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, spinnerLabels(tipsterOptions))
         binding.spinnerMarket.adapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, marketOptions)
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, spinnerLabels(marketOptions))
         binding.spinnerTypeName.adapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, betTypeOptions)
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, spinnerLabels(betTypeOptions))
     }
 
     private fun spinnerValue(spinner: android.widget.Spinner, options: List<String>): String {

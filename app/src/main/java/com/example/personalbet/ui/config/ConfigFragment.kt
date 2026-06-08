@@ -83,15 +83,20 @@ class ConfigFragment : Fragment() {
     }
 
     private fun saveConfig() {
+        val bookmakersCsv = binding.editBookmakers.text?.toString().orEmpty()
         AppConfigStore.save(
             requireContext(),
             AppConfigStore.ConfigData(
-                bookmakersCsv = binding.editBookmakers.text?.toString().orEmpty(),
+                bookmakersCsv = bookmakersCsv,
                 tipstersCsv = binding.editTipsters.text?.toString().orEmpty(),
                 marketsCsv = binding.editMarkets.text?.toString().orEmpty(),
                 betTypesCsv = binding.editLiveTypes.text?.toString().orEmpty(),
             ),
         )
+        // Reactivar comptes indicades a configuració (p. ex. casa nova o reafegida després d'eliminar).
+        AppConfigStore.parseCsv(bookmakersCsv).forEach { bookmaker ->
+            BookmakerAccountsStore.restoreAccount(requireContext(), bookmaker)
+        }
         Snackbar.make(binding.root, "Configuración guardada", Snackbar.LENGTH_SHORT).show()
     }
 

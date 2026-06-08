@@ -92,6 +92,7 @@ class BetsAdapter(
                 true
             }
             binding.chipResult.setOnClickListener { onVerify(bet) }
+            binding.buttonEdit.setOnClickListener { onEdit(bet) }
             binding.buttonDelete.setOnClickListener { onDelete(bet) }
         }
 

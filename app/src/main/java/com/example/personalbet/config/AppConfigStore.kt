@@ -11,10 +11,10 @@ object AppConfigStore {
     private const val KEY_BET_TYPES = "bet_types_csv"
     private const val KEY_TUTORIAL_SEEN = "tutorial_seen"
 
-    private const val DEFAULT_BOOKMAKERS = "Bet365,Winamax,Bwin"
-    private const val DEFAULT_TIPSTERS = "Alberto"
-    private const val DEFAULT_MARKETS = "Goles,Ganador,Corner,Handicap,Jugadores,Disciplina,Otros"
-    private const val DEFAULT_BET_TYPES = "Live,PreMatch"
+    private const val DEFAULT_BOOKMAKERS = ""
+    private const val DEFAULT_TIPSTERS = ""
+    private const val DEFAULT_MARKETS = ""
+    private const val DEFAULT_BET_TYPES = ""
 
     data class ConfigData(
         val bookmakersCsv: String,

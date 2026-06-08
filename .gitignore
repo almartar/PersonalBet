@@ -22,3 +22,4 @@ signing.properties
 # IDE / temporal
 .kotlin/
 build_out.txt
+.cursor/

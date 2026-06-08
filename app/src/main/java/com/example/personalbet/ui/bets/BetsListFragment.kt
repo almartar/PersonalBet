@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.personalbet.MainActivity
 import com.example.personalbet.PersonalBetApplication
+import com.example.personalbet.R
 import com.example.personalbet.data.Bet
 import com.example.personalbet.data.BetResult
 import com.example.personalbet.databinding.FragmentBetsListBinding
@@ -50,7 +51,7 @@ class BetsListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         adapter = BetsAdapter(
             bets = mutableListOf(),
-            onDelete = { bet -> deleteBet(bet) },
+            onDelete = { bet -> confirmDeleteBet(bet) },
             onVerify = { bet -> showVerifyDialog(bet) },
             onEdit = { bet -> (requireActivity() as MainActivity).openEditBetScreen(bet.id) },
         )
@@ -259,6 +260,17 @@ class BetsListFragment : Fragment() {
             )
         }
         binding.buttonFilterDate.text = text
+    }
+
+    private fun confirmDeleteBet(bet: Bet) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.delete_bet_confirm_title))
+            .setMessage(getString(R.string.delete_bet_confirm_message, bet.eventDescription))
+            .setPositiveButton("Eliminar") { _, _ ->
+                deleteBet(bet)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun deleteBet(bet: Bet) {
